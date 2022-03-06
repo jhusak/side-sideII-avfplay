@@ -427,19 +427,26 @@ no_start:
 wait_loop_count = *-1
 
 wait_loop:
-		sta		wsync
 		ldy		soundbuf-$100+18,x
 wait_loop_offset = *-2
+		sta		wsync
 
-		bit		$0100
-		bit		$0100
-		
-		lda		consol
-		lsr
+		cpx		#$e8	;2
+		bne		*+2 	;3/2 ;skip dl dma
+		cpx		#$f0	;2
+		bne		*+2 	;3/2 ;skip dl dma
+		cpx		#$f8	;2
+		bne		*+2 	;3/2 ;skip dl dma
+		nop
+		bit.b 		0
 		
 		sty		audf1
 		sty		stimer
 
+		lda		consol
+		lsr
+
+		
 		inx
 		bne		wait_loop
 		jmp		main_loop
