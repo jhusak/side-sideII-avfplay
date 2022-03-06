@@ -11,12 +11,12 @@ build: c
 	# exomizer sfx sys -Di_load_addr=0xc00 -Datari_init=1 ai.xex -t 168 -n -o aic.xex
 
 cp: build
-	while ! [ -d /Volumes/UNTITLED ] ; do sleep 1 ; done
+	while ! [ -d /Volumes/ATARI ] ; do sleep 1 ; done
 	sleep 1
-	cp AVFPLAY /Volumes/ATARI/ATARI/MOVPLAY
+	cp MOVPLAY /Volumes/ATARI/ATARI/MOVPLAY.XEX
 	eject || true
 cpb: 
-	while ! [ -d /Volumes/UNTITLED ] ; do sleep 1 ; done
+	while ! [ -d /Volumes/ATARI ] ; do sleep 1 ; done
 	sleep 1
-	cp AVFPLAY /Volumes/ATARI/ATARI/MOVPLAY
+	cp MOVPLAY /Volumes/ATARI/ATARI/MOVPLAY.XEX
 	eject || true
