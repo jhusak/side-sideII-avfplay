@@ -110,7 +110,9 @@ clear_zp:
 		jsr		FlipToTextDisplay
 		
 		jsr		LogImprint
-		dta		'60fps video player by Avery Lee'*,$9b,$9b,0
+		dta		' 50/60fps video player by Avery Lee '*,$9b,0
+		jsr		LogImprint
+		dta		' Sound quality fixes by Jakub Husak '*,$9b,$9b,0
 
 		;set up NTSC/PAL differences
 		lda		#$08
