@@ -117,6 +117,7 @@ clear_zp:
 		bit		pal
 		bne		is_ntsc
 		
+		mva 		#{bit.b 0 } ntsc_eat_cycle
 		mva		#$40 prior_byte_1
 		mva		#$c7 prior_byte_2
 		mva		#<(-67) wait_loop_count
@@ -354,11 +355,13 @@ eat_loop:
 		sta		wsync
 		ldy		ide_data
 		mva		ide_data soundbuf+$40-<(-19),x
-		lda		ide_data
+		cpx		#$fb
+ntsc_eat_cycle = *
+		bne		*+2
 		nop
 		sty		audf1
 		sty		stimer
-		:7 lda	ide_data		;28
+		:8 lda	ide_data		;28
 		inx
 		bne		eat_loop
 		
@@ -367,7 +370,8 @@ eat_loop:
 		ldy		ide_data
 		lda		ide_data
 		pha:pla
-		bit		$00		
+		bit		$00
+		nop
 		sty		audf1
 		sty		stimer
 		
