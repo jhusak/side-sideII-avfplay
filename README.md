@@ -1,6 +1,6 @@
 MOVPLAY
 
-This is the player for SIDE/SIDEII cartridges for Atari 8-bit Computers.
+This is the player for SIDE/SIDEII cartridges for Atari 8-bit Computers. Additionaly, after changing the destination compatible IDE device, the player will play movies from CF put in INCOGNITO board.
 
 The player replays avf files written block by block to CF card.
 
