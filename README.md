@@ -13,7 +13,7 @@ The Altirra Atari Emulator by Avery Lee was used to check every sample plays at 
 
 But we have a little possibilities to fix this, because Atari was not designed to produce such low noise when so many things are going on its digital side.
 
-Happy testing (feel free to raise bugs)
+Happy testing (feel free to raise issues)
 
 Jakub Husak
 

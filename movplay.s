@@ -1,3 +1,14 @@
+; AVF MOVPLAY by Avery Lee 2013
+; Sound quality fixes by Jakub Husak 2022
+;
+; Player runs from SIO device plays raw data stored on
+; mass storage device SIDE, SIDEII or INCOGNITO
+;
+; To prepare media to play simply write the avf movie
+; using a sector copy software (dd for example) 
+; on the compact flash card, set device with card,
+; boot the Atari from SIO device with player
+; and enjoy 50/60 fps movie :)
 ;
 ; 4C00-4EFF		Playback display list
 ; 4F00-4FFF		Error display list
@@ -5,12 +16,21 @@
 ;
 		icl		'hardware.inc'
 		icl		'os.inc'
+CODE_FOR_SIDE	equ	1
+CODE_FOR_INCOGNITO	equ	2
+
+CODE	equ	CODE_FOR_SIDE
 
 ;START_SECTOR = 33792+16
 START_SECTOR = 16
 
-;IDE_BASE = $d500
+	.if (CODE == CODE_FOR_INCOGNITO)
+IDE_BASE = $d1e0
+	.endif
+
+	.if (CODE == CODE_FOR_SIDE)
 IDE_BASE = $d5f0
+	.endif
 
 side_sdx_control	equ	$d5e0
 side_cart_control	equ	$d5e4
@@ -42,12 +62,12 @@ log_curx	dta		0
 log_curln	dta		a(0)
 log_srcptr	dta		a(0)
 log_lncnt	dta		0
-pages	dta		0
-vblanks	dta		0
+;pages	dta		0
+;vblanks	dta		0
 waitcnt	dta		0
-nextpg	dta		0
+;nextpg	dta		0
 delycnt	dta		0
-pending	dta		0
+;pending	dta		0
 sector	dta	0
 		dta	0
 		dta	0
@@ -58,13 +78,13 @@ d1		dta		0
 d2		dta		0
 d3		dta		0
 d4		dta		0
-d5		dta		0
-d6		dta		0
-d7		dta		0
+;d5		dta		0
+;d6		dta		0
+;d7		dta		0
 a0		dta		a(0)
 a1		dta		a(0)
 a2		dta		a(0)
-a3		dta		a(0)
+;a3		dta		a(0)
 zp_end:
 
 ;============================================================================
@@ -112,7 +132,14 @@ clear_zp:
 		jsr		LogImprint
 		dta		' 50/60fps video player by Avery Lee '*,$9b,0
 		jsr		LogImprint
-		dta		' Sound quality fixes by Jakub Husak '*,$9b,$9b,0
+		dta		' Sound quality fixes by Jakub Husak '*,$9b,0
+		jsr		LogImprint
+	.if (CODE == CODE_FOR_INCOGNITO)
+		dta		' Incognito version 08.03.2022       '*,$9b,$9b,0
+	.endif
+	.if (CODE == CODE_FOR_SIDE)
+		dta		' SIDE/SIDEII version 08.03.2022.    '*,$9b,$9b,0
+	.endif
 
 		;set up NTSC/PAL differences
 		lda		#$08
@@ -311,7 +338,7 @@ prior_byte_2 = * - 1
 
 .endr
 			
-		;With 182 scanlines, there are 320 bytes left over. 262 of these are used for
+		;With 192 scanlines, there are 320 bytes left over. 262 of these are used for
 		;sound, and the other 58 we toss. We read 10 bytes a scanline and so this
 		;takes 32 scanlines.
 				
