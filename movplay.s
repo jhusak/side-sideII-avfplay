@@ -242,8 +242,10 @@ cmd_ok:
 		jsr		LogImprint
 		dta		$9b
 		dta		'Ready to play -- press a key.',$9b
-		dta		'During playback:',$9B
-		dta		'  ','START'*,' Restart',$9b,0
+		dta		'During playback:',$9B,$9B
+		dta		'  ',' START  '*,' Restart',$9b
+		dta		'  ',' OPTION '*,' Fast Forward',$9b
+		dta		'  ',' SELECT '*,' Wind Back',$9b,0
 		
 		mva		#0 irqen
 		mva		#$40 irqen
@@ -403,13 +405,13 @@ ntsc_eat_cycle = *
 		
 		;Do a line of audio, so we get some time again.
 		sta		wsync
-		ldy		ide_data
-		lda		ide_data
-		pha:pla
-		bit		$00
-		nop
-		sty		audf1
-		sty		stimer
+		ldy		ide_data	; 4
+		lda		ide_data 	; 4
+		pha:pla				; 7
+		bit		$00		; 3
+		nop				; 2
+		sty		audf1		; 4
+		sty		stimer		; 4 - 28
 		
 main_loop_start:				
 		;Okay, now we can issue the next read. Bump the sector number at
@@ -421,21 +423,27 @@ main_loop_start:
 		ldx		sector+2		;3
 		stx		ide_lba2		;4
 		ldx		sector+3		;3
-		stx		ide_lba3		;4
+		stx		ide_lba3		;4 - 28
 		
-		add		#17				;3
+		; due to 3 sectors increased, max sector number is
+		; 256*256*256=16777216, which gives about 274 minutes.
+		; after that the movie plays again out of sync.
+		; someday we will fix this.
+		add		#17			;4
 		sta		sector			;4
 		bcc		no_carry		;2+1
 		inc		sector+1		;5
 		bne		no_carry		;2+1
-		inc		sector+2		;5
+		inc		sector+2		;5 - 23
 no_carry:
 		
 		;Kick the read.
-		mva		#17 ide_nsecs
+		mva		#17 ide_nsecs ; 6
 ;		lda		#IDE_CMD_READ_MULTIPLE
-		lda		#IDE_CMD_READ
-		sta		ide_cmd
+		lda		#IDE_CMD_READ ; 2
+		sta		ide_cmd ; 4 - 12
+
+		:6	nop ; 7 - skips at about one minute
 		
 		;We have 47 scanlines to wait (~4ms), so in the meantime let's play
 		;some audio.
@@ -453,6 +461,7 @@ no_carry:
 		sty		stimer
 		
 		bcs		no_start				;2
+reset_play:
 		lda		#<[START_SECTOR]		;2
 		sta		sector					;3
 		lda		#<[START_SECTOR/256]	;2
@@ -461,8 +470,41 @@ no_carry:
 		sta		sector+2				;3
 		lda		#$e0					;2
 		sta		sector+3				;3
-no_start:
+		bne		no_consol
+no_start:	lsr
+		bcs		no_select
+		lda		sector+2
+		bne		nextcheck
+		lda		sector+1
+		cmp 		#5
+		bcs		nextcheck
+		bcc		reset_play
+nextcheck:
+		lda		sector
+		sec
+		sbc		#252
+		sta		sector
+		lda		sector+1
+		sbc		#3
+		sta		sector+1
+		lda		sector+2
+		sbc		#0
+		sta		sector+2
+		clc
+		bcc		no_consol
+no_select:	lsr
+		bcs		no_consol
+		; option - fast forward
+		lda		sector
+		add		#252			;4
+		sta		sector			;4
+		lda		sector+1
+		adc		#3
+		sta		sector+1
+		bcc		no_consol		;2+1
+		inc		sector+2		;5 - 23
 
+no_consol:
 		ldx		#<(-17)			;modified to -67 for PAL
 wait_loop_count = *-1
 
