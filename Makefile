@@ -1,7 +1,12 @@
 .SUFFIXES: .s
 .SUFFIXES: .xex
-c:
-	mads movplay.s -o:MOVPLAY
+c: c_side c_incognito
+
+c_side:
+	mads movplay.s -d:CODE=1 -o:bin/MOVPLAY_SIDE.XEX
+
+c_incognito:
+	mads movplay.s -d:CODE=2 -o:bin/MOVPLAY_INCOGNITO.XEX
 
 %.xex: %.s
 	mads -l $< -o:$@

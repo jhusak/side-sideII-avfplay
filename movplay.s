@@ -16,10 +16,17 @@
 ;
 		icl		'hardware.inc'
 		icl		'os.inc'
+
+; due to nature of setting labels in the command line,
+; those are comments, but in the command line set them to
+; 1 or 2.
 CODE_FOR_SIDE	equ	1
 CODE_FOR_INCOGNITO	equ	2
 
-CODE	equ	CODE_FOR_INCOGNITO
+; please define CODE to 1 or 2 in mads command line: -d:CODE=(1|2)
+	.error (.not .def (CODE))
+
+	.error (CODE<>1 .and CODE <>2)
 
 ;START_SECTOR = 33792+16
 START_SECTOR = 16
