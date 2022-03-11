@@ -251,9 +251,10 @@ cmd_ok:
 		dta		$9b
 		dta		'Ready to play -- press a key.',$9b
 		dta		'During playback:',$9B,$9B
-		dta		'  ',' START  '*,' Restart',$9b
-		dta		'  ',' OPTION '*,' Fast Forward',$9b
-		dta		'  ',' SELECT '*,' Wind Back',$9b,0
+		dta		'  ',' SELECT '*,'+',' START '*,' - Restart',$9b
+		dta		'  ',' START  '*,' - Pause on/off',$9b
+		dta		'  ',' OPTION '*,' - Fast Forward',$9b
+		dta		'  ',' SELECT '*,' - Wind Back',$9b,0
 		
 		mva		#0 irqen
 		mva		#$40 irqen
