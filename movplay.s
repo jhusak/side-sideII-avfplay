@@ -237,7 +237,7 @@ cmd_ok:
 		mva		#17 ide_nsecs
 		
 		;start on sector 16 (-15 for first inc)
-		mva		#16 sector
+		mva		#START_SECTOR sector
 		
 		jsr		LogImprint
 		dta		$9b
@@ -425,7 +425,7 @@ main_loop_start:
 		ldx		sector+3		;3
 		stx		ide_lba3		;4 - 28
 		
-		; due to 3 sectors increased, max sector number is
+		; due to 3-byte sectors number increased, max sector number is
 		; 256*256*256=16777216, which gives about 274 minutes.
 		; after that the movie plays again out of sync.
 		; someday we will fix this.
