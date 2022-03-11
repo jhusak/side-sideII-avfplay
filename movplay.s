@@ -10,6 +10,14 @@
 ; boot the Atari from SIO device with player
 ; and enjoy 50/60 fps movie :)
 ;
+; logic:
+; start - toggle pause
+; select+start (playing) - begin
+; select (playing) - backwards, cancels pause
+; option (playing) - ff, cancels pause
+; select (paused) - one frame-
+; option (paused) - one frame+
+;
 ; 4C00-4EFF		Playback display list
 ; 4F00-4FFF		Error display list
 ; 5000-5FFF		Framebuffer
@@ -69,8 +77,8 @@ log_curx	dta		0
 log_curln	dta		a(0)
 log_srcptr	dta		a(0)
 log_lncnt	dta		0
-;pages	dta		0
-;vblanks	dta		0
+back_consol	dta		0
+pause		dta		0
 waitcnt	dta		0
 ;nextpg	dta		0
 delycnt	dta		0
@@ -429,6 +437,10 @@ main_loop_start:
 		; 256*256*256=16777216, which gives about 274 minutes.
 		; after that the movie plays again out of sync.
 		; someday we will fix this.
+		ldx		#$a0
+		bit		pause
+		bmi		no_carry
+		ldx		#$af
 		add		#17			;4
 		sta		sector			;4
 		bcc		no_carry		;2+1
@@ -436,31 +448,51 @@ main_loop_start:
 		bne		no_carry		;2+1
 		inc		sector+2		;5 - 23
 no_carry:
+		stx		audc1
 		
 		;Kick the read.
 		mva		#17 ide_nsecs ; 6
 ;		lda		#IDE_CMD_READ_MULTIPLE
 		lda		#IDE_CMD_READ ; 2
-		sta		ide_cmd ; 4 - 12
 
-		:6	nop ; 7 - skips at about one minute
+		; :3	nop ; 7 - skips at about one minute
 		
 		;We have 47 scanlines to wait (~4ms), so in the meantime let's play
 		;some audio.
 		sta		wsync
+		sta		ide_cmd ; 4 - 12
 		ldy		soundbuf
 
-		bit		$0100
+		;bit		$0100
 		bit		$0100
 		nop
 		
+		; logic:
+		; start - toggle pause
+		; select+start (playing) - begin
+		; select (playing) - backwards, cancels pause
+		; option (playing) - ff, cancels pause
+		; select (paused) - one frame-
+		; option (paused) - one frame+
 		lda		consol
-		lsr
-		
+		cmp		#$6 ; bare start key
+
 		sty		audf1
 		sty		stimer
-		
-		bcs		no_start				;2
+
+		bne		no_switch
+		cmp		back_consol
+		beq		no_switch
+		sta		back_consol
+		lda		pause
+		eor		#$ff
+		sta		pause
+		jmp		no_consol
+
+no_switch:
+		sta		back_consol
+		cmp		#$4	; select + start
+		bne		no_start				;2
 reset_play:
 		lda		#<[START_SECTOR]		;2
 		sta		sector					;3
@@ -471,8 +503,8 @@ reset_play:
 		lda		#$e0					;2
 		sta		sector+3				;3
 		bne		no_consol
-no_start:	lsr
-		bcs		no_select
+no_start:	cmp		#$5
+		bne		no_select
 		lda		sector+2
 		bne		nextcheck
 		lda		sector+1
@@ -492,9 +524,21 @@ nextcheck:
 		sta		sector+2
 		clc
 		bcc		no_consol
-no_select:	lsr
-		bcs		no_consol
+no_select:	cmp		#$3
+		bne		no_consol
 		; option - fast forward
+		;bit		pause
+		;beq		fastforward
+		;bne		no_consol
+		;lda		sector
+		;add		#17			;4
+		;sta		sector			;4
+		;bcc		no_consol		;2+1
+		;inc		sector+1		;5
+		;bne		no_consol		;2+1
+		;inc		sector+2		;5 - 23
+		;jmp		no_consol
+fastforward:
 		lda		sector
 		add		#252			;4
 		sta		sector			;4
@@ -1107,6 +1151,21 @@ dlist_init:
 		dta		$4f,a(framebuf)
 		dta		$41,a(dlist_init)
 		
+;============================================================================
+		org		$4d00
+dlistpaused:
+		dta		$70
+		dta		$70
+		dta		$f0
+
+		dta	$4F, $50, $81
+		:93 dta $0f
+		dta	$4F, $00, $90
+		:97 dta $0f
+		dta	$41, $36, $80
+
+		dta		$41,a(dlistpaused)
+
 ;============================================================================
 		org		$4f00
 dlist_text:
