@@ -147,7 +147,7 @@ clear_zp:
 		jsr		LogImprint
 		dta		' 50/60fps video player by Avery Lee '*,$9b,0
 		jsr		LogImprint
-		dta		' Sound quality fixes by Jakub Husak '*,$9b,0
+		dta		' Further development by Jakub Husak '*,$9b,0
 		jsr		LogImprint
 	.if (CODE == CODE_FOR_INCOGNITO)
 		dta		' Incognito version 12.03.2022       '*,$9b,$9b,0
@@ -252,7 +252,7 @@ cmd_ok:
 		dta		'Ready to play -- press a key.',$9b
 		dta		'During playback:',$9B,$9B
 		dta		'  ',' SELECT '*,'+',' START '*,' - Restart',$9b
-		dta		'  ',' START  '*,' - Pause on/off',$9b
+		dta		'  ',' START  '*,' - Pause On/Off',$9b
 		dta		'  ',' OPTION '*,' - Fast Forward',$9b
 		dta		'  ',' SELECT '*,' - Wind Back',$9b
 		dta		'  ',' SHIFT '*,'+',' OPTION '*,' - Volume UP',$9b
