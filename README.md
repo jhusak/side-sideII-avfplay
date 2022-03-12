@@ -5,7 +5,7 @@ This is the player for SIDE/SIDEII cartridges for Atari 8-bit Computers. Additio
 The player replays avf files written block by block to CF card.
 
 New features:
-- sound quality best achievable
+- sound quality best achievable on POKEY ANTIC and GTIA turned on the same time
 - fast 120x forward and rewind
 - volume up/down
 - pause
