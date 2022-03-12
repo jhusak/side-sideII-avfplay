@@ -150,10 +150,10 @@ clear_zp:
 		dta		' Sound quality fixes by Jakub Husak '*,$9b,0
 		jsr		LogImprint
 	.if (CODE == CODE_FOR_INCOGNITO)
-		dta		' Incognito version 08.03.2022       '*,$9b,$9b,0
+		dta		' Incognito version 12.03.2022       '*,$9b,$9b,0
 	.endif
 	.if (CODE == CODE_FOR_SIDE)
-		dta		' SIDE/SIDEII version 08.03.2022.    '*,$9b,$9b,0
+		dta		' SIDE/SIDEII version 12.03.2022.    '*,$9b,$9b,0
 	.endif
 
 		;set up NTSC/PAL differences
@@ -254,7 +254,9 @@ cmd_ok:
 		dta		'  ',' SELECT '*,'+',' START '*,' - Restart',$9b
 		dta		'  ',' START  '*,' - Pause on/off',$9b
 		dta		'  ',' OPTION '*,' - Fast Forward',$9b
-		dta		'  ',' SELECT '*,' - Wind Back',$9b,0
+		dta		'  ',' SELECT '*,' - Wind Back',$9b
+		dta		'  ',' SHIFT '*,'+',' OPTION '*,' - Volume UP',$9b
+		dta		'  ',' SHIFT '*,'+',' SELECT '*,' - Volume DOWN',$9b,0
 		
 		mva		#0 irqen
 		mva		#$40 irqen
@@ -442,6 +444,7 @@ main_loop_start:
 		bit		pause
 		bmi		no_carry
 		ldx		#$af
+volume	=	*-1
 		add		#17			;4
 		sta		sector			;4
 		bcc		no_carry		;2+1
@@ -504,29 +507,53 @@ reset_play:
 		lda		#$e0					;2
 		sta		sector+3				;3
 		bne		no_consol
-no_start:	cmp		#$5
+no_start:	cmp		#$5 ; select
 		bne		no_select
+		lda		skctl
+		and		#$8
+		bne		do_rewind
+		; tricky dec if greater then a0
+		lda		#$a0
+		cmp		volume
+		bcs		no_consol
+		dec		volume
+		bne		no_consol
+;
+
+;
+do_rewind:
 		lda		sector+2
 		bne		nextcheck
 		lda		sector+1
-		cmp 		#5
+		cmp 		#9
 		bcs		nextcheck
 		bcc		reset_play
 nextcheck:
 		lda		sector
 		sec
-		sbc		#252
+		sbc		#248
 		sta		sector
 		lda		sector+1
-		sbc		#3
+		sbc		#7
 		sta		sector+1
-		lda		sector+2
-		sbc		#0
-		sta		sector+2
+		scs
+		dec		sector+2
+		;sbc		#0
+		;sta		sector+2
 		clc
 		bcc		no_consol
 no_select:	cmp		#$3
 		bne		no_consol
+		lda		skctl
+		and		#$8
+		bne		fastforward
+
+		lda		#$ae
+		cmp		volume
+		bcc		no_consol
+		inc		volume
+		bne		no_consol
+
 		; option - fast forward
 		;bit		pause
 		;beq		fastforward
@@ -541,10 +568,10 @@ no_select:	cmp		#$3
 		;jmp		no_consol
 fastforward:
 		lda		sector
-		add		#252			;4
+		add		#248			;4
 		sta		sector			;4
 		lda		sector+1
-		adc		#3
+		adc		#7
 		sta		sector+1
 		bcc		no_consol		;2+1
 		inc		sector+2		;5 - 23
