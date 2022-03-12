@@ -1,13 +1,14 @@
 ; AVF MOVPLAY by Avery Lee 2013
 ; Sound quality fixes by Jakub Husak 2022
 ;
-; Player runs from SIO device plays raw data stored on
+; Player runs from SIO device (or other external)
+; and plays raw data stored on
 ; mass storage device SIDE, SIDEII or INCOGNITO
 ;
 ; To prepare media to play simply write the avf movie
 ; using a sector copy software (dd for example) 
-; on the compact flash card, set device with card,
-; boot the Atari from SIO device with player
+; to the compact flash card, insert device with card,
+; boot the Atari from another device with player
 ; and enjoy 50/60 fps movie :)
 ;
 ; logic:
