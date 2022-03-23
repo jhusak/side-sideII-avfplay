@@ -68,6 +68,9 @@ IDE_CMD_SET_MULTIPLE_MODE	equ		$c6
 IDE_CMD_SET_FEATURES		equ		$ef
 ;============================================================================
 
+pause_imaddr	equ	$8150
+pause_imaddr2	equ	$9000
+
 		org	$0
 		opt	o-
 zpsndbuf:
@@ -100,7 +103,7 @@ d4		dta		0
 a0		dta		a(0)
 a1		dta		a(0)
 a2		dta		a(0)
-;a3		dta		a(0)
+a3		dta		a(0)
 zp_end:
 
 ;============================================================================
@@ -146,10 +149,9 @@ clear_zp:
 		jsr		FlipToTextDisplay
 		
 		jsr		LogImprint
-		dta		' 50/60fps video player by Avery Lee '*,$9b,0
-		jsr		LogImprint
-		dta		' Further development by Jakub Husak '*,$9b,0
-		jsr		LogImprint
+		dta		' 50/60fps video player by Avery Lee '*,$9b
+		dta		' Further development by Jakub Husak '*,$9b
+
 	.if (CODE == CODE_FOR_INCOGNITO)
 		dta		' Incognito version 12.03.2022       '*,$9b,$9b,0
 	.endif
@@ -267,7 +269,6 @@ cmd_ok:
 		
 		;set up for reading
 		lda		#248/2
-		cmp:req	vcount
 		cmp:rne	vcount
 		
 		mwa		#dlist_wait dlistl
@@ -309,13 +310,27 @@ main_loop:
 		bcs		err
 		and		#$04
 		beq		main_loop
-
+		lda	#$00
+volume	=	*-1
+		sta	audc1
+		lda	volume
+		bne	@+
+		lda	#$af
+		sta	volume
+@
+		
+		lda	pause
+		beq	@+
+		; IDE Ready to read frame, so read by hand
+		; and display paused frame from memory
+		jsr	FlipToPauseDisplay
+		; mwa		#dlist dlistl
+@
+		;pha:pla
 		ldx		#$c0			;2 (changed to $47 for PAL)
 prior_byte_1 = * - 1
 		lda		#$47			;2 (changed to $c0 for PAL)
 prior_byte_2 = * - 1
-		
-		pha:pla
 		
 		sta		wsync
 		bit		$00
@@ -411,7 +426,7 @@ ntsc_eat_cycle = *
 		nop
 		sty		audf1
 		sty		stimer
-		:8 lda	ide_data		;28
+		:8 lda	ide_data		;32
 		inx
 		bne		eat_loop
 		
@@ -441,11 +456,11 @@ main_loop_start:
 		; 256*256*256=16777216, which gives about 274 minutes.
 		; after that the movie plays again out of sync.
 		; someday we will fix this.
-		ldx		#$a0
-		bit		pause
-		bmi		no_carry
-		ldx		#$af
-volume	=	*-1
+		;ldx		#$a0
+		;bit		pause
+		;bmi		no_carry ; pause
+		;ldx		#$a0	; no pause
+; volume	=	*-1
 		add		#17			;4
 		sta		sector			;4
 		bcc		no_carry		;2+1
@@ -453,24 +468,23 @@ volume	=	*-1
 		bne		no_carry		;2+1
 		inc		sector+2		;5 - 23
 no_carry:
-		stx		audc1
+		;stx		audc1
 		
-		;Kick the read.
-		mva		#17 ide_nsecs ; 6
-;		lda		#IDE_CMD_READ_MULTIPLE
-		lda		#IDE_CMD_READ ; 2
-
 		; :3	nop ; 7 - skips at about one minute
-		
+		;Kick the read.
+		lda		#17
 		;We have 47 scanlines to wait (~4ms), so in the meantime let's play
 		;some audio.
 		sta		wsync
+
+		sta		ide_nsecs
+		lda		#IDE_CMD_READ
 		sta		ide_cmd ; 4 - 12
 		ldy		soundbuf
 
 		;bit		$0100
-		bit		$0100
-		nop
+		;bit		$0100
+		;nop
 		
 		; logic:
 		; start - toggle pause
@@ -492,7 +506,7 @@ no_carry:
 		lda		pause
 		eor		#$ff
 		sta		pause
-		jmp		no_consol
+		jmp no_consol
 
 no_switch:
 		sta		back_consol
@@ -681,7 +695,7 @@ wait_done:
 sprclear:
 		sta		hposp0,x
 		dex
-		bpl		sprclear	
+		bpl		sprclear
 
 		;clear playfield page
 		lda		#[(ide_data&$3ff)/8]
@@ -710,8 +724,125 @@ clear_loop_2:
 
 		mva		#12 hscrol
 		mva		#7 vscrol
-		mva		#$af audc1
+		;mva		#$af audc1
 		rts
+.endp
+
+;============================================================================
+.proc FlipToPauseDisplay
+		;shut off all interrupts and kill display
+		mva		#0 nmien
+		mva		#0 dmactl
+		sta		nmires
+
+		mva 		#$a0	audc1
+		;move sprites out of the way
+		ldx		#7
+		lda		#0
+sprclear:
+		sta		hposp0,x
+		dex
+		bpl		sprclear
+
+
+		;ldy #85
+
+;@		lda	ide_data
+;		dey
+;		bne @-
+
+		mva	#64	lcnt
+		ldy	#0
+		mwa	#pause_imaddr	a3
+		:1 lda ide_data	; eat sound
+line_next
+		ldx		#40
+@		mva		ide_data (a3),y+ ; transfer line
+		dex
+		bne @-
+		:4 lda ide_data	; eat sound
+		ldx		#40
+@		mva		ide_data (a3),y+ ; transfer line
+;@		lda:iny		ide_data ; transfer line
+		dex
+		bne @-
+		;:2 lda ide_data	; eat sound
+		:3 lda ide_data	; eat sound
+		ldx		#40
+@		mva		ide_data (a3),y+ ; transfer line
+;@		lda:iny		ide_data ; transfer line
+		dex
+		bne @-
+		:1 lda ide_data	; eat sound
+		tya
+		clc
+		adc	a3
+		sta	a3
+		scc:inc a3+1
+		ldy	#0
+
+		dec lcnt
+		bne	line_next
+
+		ldy		#248/2
+		cpy:rne	vcount
+
+		mwx		#dlist_paused dlistl
+
+		mva		#$22 dmactl
+		lda		#$08
+		bit		pal
+		bne		is_ntsc
+		
+		ldx		#$40
+		lda		#$c0
+		
+		jmp		is_pal
+is_ntsc:
+		ldx		#$c0
+		lda		#$40
+is_pal:
+		;ldy	#6
+		;cpy:req	consol
+
+pause_loop
+		ldy:rpl	nmist
+		sty		nmires
+		ldy		#96
+
+pause_engine
+		sta 		wsync
+		sta		prior			;106, 107, 108, 109
+		sta 		wsync
+		stx		prior			;4
+		dey
+		bne	pause_engine
+
+		ldy		consol
+		cpy		#$6 ; bare start key
+		bne		no_switch
+		cpy		back_consol
+		beq		no_switch
+		sty		back_consol
+		ldy		#0
+		sty		pause
+		jmp no_consol
+
+no_switch:
+		sty		back_consol
+
+		;ldy	consol
+		;cpy	#6
+		;seq
+		ldy #0
+		beq	pause_loop
+
+no_consol:
+		jsr FlipToVideoDisplay
+		mva		#$22 dmactl
+
+		rts
+lcnt	dta 0
 .endp
 
 ;============================================================================
@@ -1182,18 +1313,16 @@ dlist_init:
 		
 ;============================================================================
 		org		$4d00
-dlistpaused:
+dlist_paused:
 		dta		$70
 		dta		$70
 		dta		$f0
 
-		dta	$4F, $50, $81
+		dta	$4F, a(pause_imaddr)
 		:93 dta $0f
-		dta	$4F, $00, $90
+		dta	$4F, a(pause_imaddr2)
 		:97 dta $0f
-		dta	$41, $36, $80
-
-		dta		$41,a(dlistpaused)
+		dta		$41,a(dlist_paused)
 
 ;============================================================================
 		org		$4f00
