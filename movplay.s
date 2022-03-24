@@ -153,10 +153,10 @@ clear_zp:
 		dta		' Further development by Jakub Husak '*,$9b
 
 	.if (CODE == CODE_FOR_INCOGNITO)
-		dta		' Incognito version 12.03.2022       '*,$9b,$9b,0
+		dta		' Incognito version 24.03.2022       '*,$9b,$9b,0
 	.endif
 	.if (CODE == CODE_FOR_SIDE)
-		dta		' SIDE/SIDEII version 12.03.2022.    '*,$9b,$9b,0
+		dta		' SIDE/SIDEII version 24.03.2022.    '*,$9b,$9b,0
 	.endif
 
 		;set up NTSC/PAL differences
