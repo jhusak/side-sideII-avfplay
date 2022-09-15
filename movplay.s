@@ -118,7 +118,15 @@ zp_end:
 		lda		porta
 		lda		portb
 
+		
 		;zero working variables
+		ldx		#0
+store_zp:
+		lda		0,x
+		sta 		zp_store,x
+		dex
+		bne		store_zp
+
 		ldx		#zp_end-zp_start
 		lda		#0
 clear_zp:
@@ -228,7 +236,7 @@ fatal_cmd_error:
 		jsr		LogImprint
 		dta		$9b,'IDE command error: ',0
 		jsr		LogCmdErrorData
-		jmp		*
+		jmp		ExitToDos
 cmd_ok:
 		;set up for 8-bit transfers
 		mva		#32 ide_nsecs
@@ -621,6 +629,24 @@ wait_loop_offset = *-2
 		jmp		main_loop
 .endp
 
+.proc ExitToDos
+		ldy	#150
+		lda VCOUNT
+		bpl *-3
+		lda VCOUNT
+		bmi *-3
+		dey
+		bne	ExitToDos+2	
+		ldx		#0
+restore_zp:
+		lda 		zp_store,x
+		sta		0,x
+		dex
+		bne		restore_zp
+		cli
+		jmp	(10)
+.endp
+
 ;============================================================================
 .proc	IdeDoCmd
 		sta		ide_cmd
@@ -661,8 +687,8 @@ wait_done:
 		jsr		LogImprint
 		dta		'Read error ',0
 
-		jsr		LogCmdErrorData		
-		jmp		*
+		jsr		LogCmdErrorData
+		jmp 		ExitToDos
 .endp
 
 ;============================================================================
@@ -1285,6 +1311,8 @@ putbyte:
 _hexdig:
 		dta		'0123456789ABCDEF'
 .endp
+		org		$4a00
+zp_store:
 
 ;============================================================================
 		org		$4b00
