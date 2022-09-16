@@ -1,3 +1,4 @@
+dosvec	equ	$0a
 hposp0	equ	$d000
 hposm0	equ	$d004
 hposm1	equ	$d005
