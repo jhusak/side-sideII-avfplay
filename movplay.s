@@ -111,6 +111,7 @@ zp_end:
 		opt		o+
 
 .proc	main
+		jsr graphics0
 		sei
 
 		;clear PIA interrupts
@@ -161,10 +162,14 @@ clear_zp:
 		dta		' Further development by Jakub Husak '*,$9b
 
 	.if (CODE == CODE_FOR_INCOGNITO)
-		dta		' Incognito version 24.03.2022       '*,$9b,$9b,0
+		dta		' Incognito version '*
+		ins		'date.inc'+128
+		dta		'       '*,$9b,$9b,0
 	.endif
 	.if (CODE == CODE_FOR_SIDE)
-		dta		' SIDE/SIDEII version 24.03.2022.    '*,$9b,$9b,0
+		dta		' SIDE/SIDEII version '*
+		ins		'date.inc'+128
+		dta		'    '*,$9b,$9b,0
 	.endif
 
 		;set up NTSC/PAL differences
@@ -195,6 +200,9 @@ is_pal:
 		;turn off SIDE cart
 		mva		#$c0 side_sdx_control
 		mva		#$80 side_cart_control
+		lda $d013
+		sta $3fa
+
 		
 		mva		#$00 colbk
 
@@ -260,7 +268,10 @@ cmd_ok:
 		
 		jsr		LogImprint
 		dta		$9b
-		dta		'Ready to play -- press a key.',$9b
+		dta		'Ready to play.',$9b
+		dta		'Press ','SPACE'*,' to play once',$9b
+		dta		'Press ','RETURN'*,' to play looped',$9b
+		dta		$9b
 		dta		'During playback:',$9B,$9B
 		dta		'  ',' SELECT '*,'+',' START '*,' - Restart',$9b
 		dta		'  ',' START  '*,' - Pause On/Off',$9b
@@ -268,7 +279,7 @@ cmd_ok:
 		dta		'  ',' SELECT '*,' - Wind Back',$9b
 		dta		'  ',' SHIFT '*,'+',' OPTION '*,' - Volume UP',$9b
 		dta		'  ',' SHIFT '*,'+',' SELECT '*,' - Volume DOWN',$9b,0
-		
+
 		mva		#0 irqen
 		mva		#$40 irqen
 		bit:rvs	irqst
@@ -334,12 +345,15 @@ volume	=	*-1
 		jsr	FlipToPauseDisplay
 		; mwa		#dlist dlistl
 @
+		lda $d209
+		cmp #28
+		sne
+		jmp ExitToDosNow
 		;pha:pla
 		ldx		#$c0			;2 (changed to $47 for PAL)
 prior_byte_1 = * - 1
 		lda		#$47			;2 (changed to $c0 for PAL)
 prior_byte_2 = * - 1
-		
 		sta		wsync
 		bit		$00
 		
@@ -628,25 +642,38 @@ wait_loop_offset = *-2
 		bne		wait_loop
 		jmp		main_loop
 .endp
+.proc ExitToDosNow
+		jsr FlipToTextDisplay
+		jsr restore_zp
+		cli
+		jmp	(dosvec)
+.endp
 
 .proc ExitToDos
+		jsr FlipToTextDisplay
+		jsr restore_zp
 		ldy	#150
+ewait
 		lda VCOUNT
 		bpl *-3
 		lda VCOUNT
 		bmi *-3
 		dey
-		bne	ExitToDos+2	
-		ldx		#0
-restore_zp:
-		lda 		zp_store,x
-		sta		0,x
-		dex
-		bne		restore_zp
+		bne	ewait
 		cli
 		jmp	(dosvec)
 .endp
 
+.proc	restore_zp
+		ldx		#0
+loop
+		lda 		zp_store,x
+		sta		0,x
+		inx
+		bne		loop
+		rts
+
+.endp
 ;============================================================================
 .proc	IdeDoCmd
 		sta		ide_cmd
@@ -688,7 +715,13 @@ wait_done:
 		dta		'Read error ',0
 
 		jsr		LogCmdErrorData
+		lda		loopmode
+		sne
 		jmp 		ExitToDos
+		jsr 		restore_zp
+		cli
+		; prepare zp
+		jmp		main
 .endp
 
 ;============================================================================
@@ -1311,6 +1344,30 @@ putbyte:
 _hexdig:
 		dta		'0123456789ABCDEF'
 .endp
+
+
+.proc 		graphics0
+gr0    ldx #$00        ;zamkniecie IOCB #0
+       lda #$0c        ;CLOSE
+       jsr ?xcio
+;
+       lda #<ename
+       sta icbufa,x
+       lda #>ename
+       sta icbufa+1,x
+       lda #$0c        ;READ/WRITE
+       sta icax1,x
+       lda #$00
+       sta icax2,x
+       lda #$03        ;OPEN
+?xcio  sta iccmd,x
+       jmp jciomain
+;
+ename  .byte "E:",$9b
+
+.endp
+loopmode	.byte 0
+
 		org		$4a00
 zp_store:
 
