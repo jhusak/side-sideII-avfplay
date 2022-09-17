@@ -1,4 +1,8 @@
 dosvec	equ	$0a
+iccmd	equ	$0342
+icbufa	equ	$0344
+icax1	equ	$034a
+icax2	equ	$034b
 hposp0	equ	$d000
 hposm0	equ	$d004
 hposm1	equ	$d005
@@ -43,3 +47,5 @@ vcount	equ	$d40b
 nmien	equ	$d40e
 nmist	equ	$d40f
 nmires	equ	$d40f
+jciomain	equ	$e456
+

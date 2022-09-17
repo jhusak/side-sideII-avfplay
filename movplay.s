@@ -39,6 +39,7 @@ CODE_FOR_INCOGNITO	equ	2
 
 ;START_SECTOR = 33792+16
 START_SECTOR = 16
+;START_SECTOR = 74*60*50*17+16
 
 	.if (CODE == CODE_FOR_INCOGNITO)
 IDE_BASE = $d1e0
@@ -264,9 +265,13 @@ cmd_ok:
 		mva		#17 ide_nsecs
 		
 		;start on sector 16 (-15 for first inc)
-		mva		#START_SECTOR sector
+		mva		#<[START_SECTOR] sector
+		mva		#<[START_SECTOR/256] sector+1
+		mva		#<[START_SECTOR/65536] sector+2
 		
 		jsr		LogImprint
+		dta		$9b
+		dta		'BETA VERSION',$9b
 		dta		$9b
 		dta		'Ready to play.',$9b
 		dta		'Press ','SPACE'*,' to play once',$9b
@@ -280,9 +285,23 @@ cmd_ok:
 		dta		'  ',' SHIFT '*,'+',' OPTION '*,' - Volume UP',$9b
 		dta		'  ',' SHIFT '*,'+',' SELECT '*,' - Volume DOWN',$9b,0
 
+getagain
+		ldy		#1
+		bit:rvs		irqst
+		lda 		$d209
+		cmp		#12
+		beq		play_loop
+		cmp		#33
+		beq		play_once
+		cmp		#28
+		bne		getagain
+		jmp		ExitToDosNow
+play_once
+		dey
+play_loop
+		sty		loopmode
 		mva		#0 irqen
 		mva		#$40 irqen
-		bit:rvs	irqst
 		
 		jsr		FlipToVideoDisplay
 		
@@ -300,7 +319,19 @@ cmd_ok:
 		jmp		main_loop_start
 	
 err:
+		lda		loopmode
+		sne
 		jmp		FatalReadError
+		mva		#<[START_SECTOR] sector
+		mva		#<[START_SECTOR/256] sector+1
+		mva		#<[START_SECTOR/65536] sector+2
+		lda		#$e0					;2
+		sta		sector+3				;3
+		lda #0
+		sta volume
+		sta audc1
+
+		jmp main_loop_start
 
 main_loop_delay:
 		mva		#0 dmactl
@@ -335,6 +366,7 @@ volume	=	*-1
 		lda	volume
 		bne	@+
 		lda	#$af
+init_volume	=	*-1
 		sta	volume
 @
 		
@@ -354,6 +386,7 @@ volume	=	*-1
 prior_byte_1 = * - 1
 		lda		#$47			;2 (changed to $c0 for PAL)
 prior_byte_2 = * - 1
+		
 		sta		wsync
 		bit		$00
 		
@@ -452,6 +485,10 @@ ntsc_eat_cycle = *
 		inx
 		bne		eat_loop
 		
+		; here update, because time room
+		lda volume
+		sta init_volume
+
 		;Do a line of audio, so we get some time again.
 		sta		wsync
 		ldy		ide_data	; 4
@@ -743,6 +780,7 @@ wait_done:
 
 ;============================================================================
 .proc FlipToVideoDisplay
+
 		;shut off all interrupts and kill display
 		mva		#0 nmien
 		mva		#0 dmactl
@@ -1382,9 +1420,7 @@ dlist:
 		dta		$70
 		dta		$f0
 
-.rept 16
-		dta		$32,$12,$22
-		dta		$12,$32,$02
+.rept 32
 		dta		$32,$12,$22
 		dta		$12,$32,$02
 .endr
