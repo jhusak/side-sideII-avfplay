@@ -113,6 +113,7 @@ zp_end:
 
 .proc	main
 		jsr graphics0
+		mva #0	goodcnt
 		sei
 
 		;clear PIA interrupts
@@ -287,13 +288,16 @@ cmd_ok:
 
 getagain
 		ldy		#1
-		bit:rvs		irqst
+wait_key
+		jsr		ewait
+		bit		irqst
+		bvs		wait_key
 		lda 		$d209
-		cmp		#12
+		cmp		#12 ; RETURN
 		beq		play_loop
-		cmp		#33
+		cmp		#33 ; SPACE
 		beq		play_once
-		cmp		#28
+		cmp		#28 ; ESC
 		bne		getagain
 		jmp		ExitToDosNow
 play_once
@@ -469,6 +473,7 @@ sndread_loop_start:
 		sty		stimer
 		:7 lda	ide_data		;28
 		mwa		#dlist dlistl
+		jsr inclocalrtc
 
 		ldx		#<(-18)
 eat_loop:
@@ -488,6 +493,9 @@ ntsc_eat_cycle = *
 		; here update, because time room
 		lda volume
 		sta init_volume
+		inc goodcnt
+		sne
+		dec goodcnt
 
 		;Do a line of audio, so we get some time again.
 		sta		wsync
@@ -679,27 +687,42 @@ wait_loop_offset = *-2
 		bne		wait_loop
 		jmp		main_loop
 .endp
-.proc ExitToDosNow
-		jsr FlipToTextDisplay
-		jsr restore_zp
-		cli
-		jmp	(dosvec)
-.endp
 
-.proc ExitToDos
+inclocalrtc
+		inc zp_store+20
+		bne incend
+		inc zp_store+19
+		bne incend
+		inc zp_store+18
+incend
+		rts
+
+
+ExitToDosNow
+		ldy #1
+		dta {bit.w}
+ExitToDos
+		ldy #150
+		tya
+		pha
 		jsr FlipToTextDisplay
 		jsr restore_zp
-		ldy	#150
+		pla
+		tay
+		jsr ewait
+		dey
+		bne	ewait
+		cli
+		rts
+		;jmp	(dosvec)
+
 ewait
+		jsr	inclocalrtc
 		lda VCOUNT
 		bpl *-3
 		lda VCOUNT
 		bmi *-3
-		dey
-		bne	ewait
-		cli
-		jmp	(dosvec)
-.endp
+		rts
 
 .proc	restore_zp
 		ldx		#0
@@ -753,12 +776,13 @@ wait_done:
 
 		jsr		LogCmdErrorData
 		lda		loopmode
-		sne
-		jmp 		ExitToDos
+		beq		exit_app
 		jsr 		restore_zp
 		cli
 		; prepare zp
 		jmp		main
+exit_app
+		jmp 		ExitToDos
 .endp
 
 ;============================================================================
@@ -1405,6 +1429,7 @@ ename  .byte "E:",$9b
 
 .endp
 loopmode	.byte 0
+goodcnt		.byte 0
 
 		org		$4a00
 zp_store:
