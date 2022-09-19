@@ -860,46 +860,30 @@ clear_loop_2:
 ;============================================================================
 .proc FlipToPauseDisplay
 		;shut off all interrupts and kill display
-		mva		#0 nmien
-		mva		#0 dmactl
-		sta		nmires
+		mva             #0 nmien
+		mva             #0 dmactl
+		sta             nmires
 
 		mva 		#$a0	audc1
-		;move sprites out of the way
-		;ldx		#7
-		;lda		#0
-;sprclear:
-		;sta		hposp0,x
-		;dex
-		;bpl		sprclear
-
-
-		;ldy #85
-
-;@		lda	ide_data
-;		dey
-;		bne @-
-
-		mva	#64	lcnt
-		ldy	#0
-		mwa	#pause_imaddr	a3
+		mva		#64	lcnt
+		mwa		#pause_imaddr	a3
 		:1 lda ide_data	; eat sound
+		ldy		#0
 line_next
 		ldx		#40
 @		mva		ide_data (a3),y+ ; transfer line
 		dex
 		bne @-
+
 		:4 lda ide_data	; eat sound
 		ldx		#40
 @		mva		ide_data (a3),y+ ; transfer line
-;@		lda:iny		ide_data ; transfer line
 		dex
 		bne @-
-		;:2 lda ide_data	; eat sound
+
 		:3 lda ide_data	; eat sound
 		ldx		#40
 @		mva		ide_data (a3),y+ ; transfer line
-;@		lda:iny		ide_data ; transfer line
 		dex
 		bne @-
 		:1 lda ide_data	; eat sound
@@ -913,11 +897,10 @@ line_next
 		dec lcnt
 		bne	line_next
 
-		ldy		#248/2
+		ldy		#248/2 ; wait for screen for be displayed
 		cpy:rne	vcount
 
-		mwx		#dlist_paused dlistl
-
+		mwa		#dlist_paused dlistl
 		mva		#$22 dmactl
 		lda		#$08
 		bit		pal
@@ -933,7 +916,7 @@ is_ntsc:
 is_pal:
 
 pause_loop
-		ldy:rpl	nmist
+		ldy:rpl	nmist	; wait for sync line (dliint set in line)
 		sty		nmires
 		ldy		#96
 
@@ -945,6 +928,7 @@ pause_engine
 		dey
 		bne	pause_engine
 
+; keyboard and consol handling
 		INC_RTC
 		bit		irqst
 		bvs		chk_consol
@@ -955,7 +939,7 @@ pause_engine
 chk_consol
 		ldy		consol
 		cpy		#$6 ; bare start key
-		bne		no_switch
+		bne		no_switch ; 
 		cpy		back_consol
 		beq		no_switch
 		sty		back_consol
@@ -966,8 +950,7 @@ chk_consol
 no_switch:
 		sty		back_consol
 
-		ldy #0
-		beq	pause_loop
+		jmp		pause_loop
 
 no_consol:
 		jsr FlipToVideoDisplay
