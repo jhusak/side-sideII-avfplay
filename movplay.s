@@ -287,7 +287,8 @@ cmd_ok:
 getagain
 		ldy		#1
 wait_key
-		jsr		ewait
+		INC_RTC
+		WAITFRAME
 		bit		irqst
 		bvs		wait_key
 		lda 		$d209
@@ -690,12 +691,10 @@ ExitToDosNow
 		dta {bit.w}
 ExitToDos
 		ldy #150
-		tya
-		pha
-		pla
-		tay
+		mva 		#$a0	audc1
 endwait
-		jsr ewait
+		INC_RTC
+		WAITFRAME
 		dey
 		bne	endwait
 		jsr	FlipToTextDisplay
@@ -705,13 +704,18 @@ endwait
 		rts
 		;jmp	(dosvec)
 
-ewait
-		INC_RTC
-		WAITFRAME
-		rts
-
 restore_system
 		mva		#$40 nmien
+		lda #3
+		ldx #$0f
+again
+		sta	audf1,x
+		sta	audf1+$10,x
+		sta	audf1+$20,x
+		sta	audf1+$30,x
+		lda #0
+		dex
+		bpl again
 		rts
 
 WAITFRAME	.macro
@@ -862,12 +866,12 @@ clear_loop_2:
 
 		mva 		#$a0	audc1
 		;move sprites out of the way
-		ldx		#7
-		lda		#0
-sprclear:
-		sta		hposp0,x
-		dex
-		bpl		sprclear
+		;ldx		#7
+		;lda		#0
+;sprclear:
+		;sta		hposp0,x
+		;dex
+		;bpl		sprclear
 
 
 		;ldy #85
@@ -927,8 +931,6 @@ is_ntsc:
 		ldx		#$c0
 		lda		#$40
 is_pal:
-		;ldy	#6
-		;cpy:req	consol
 
 pause_loop
 		ldy:rpl	nmist
@@ -943,9 +945,7 @@ pause_engine
 		dey
 		bne	pause_engine
 
-;wait_key
 		INC_RTC
-		;jsr		ewait
 		bit		irqst
 		bvs		chk_consol
 		ldy 		$d209
@@ -966,9 +966,6 @@ chk_consol
 no_switch:
 		sty		back_consol
 
-		;ldy	consol
-		;cpy	#6
-		;seq
 		ldy #0
 		beq	pause_loop
 
