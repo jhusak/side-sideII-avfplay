@@ -718,9 +718,9 @@ ExitToDos
 
 ewait
 		jsr	inclocalrtc
-		lda VCOUNT
+		bit VCOUNT
 		bpl *-3
-		lda VCOUNT
+		bit VCOUNT
 		bmi *-3
 		rts
 
