@@ -635,18 +635,6 @@ no_select:	cmp		#$3
 		inc		volume
 		bne		no_consol
 
-		; option - fast forward
-		;bit		pause
-		;beq		fastforward
-		;bne		no_consol
-		;lda		sector
-		;add		#17			;4
-		;sta		sector			;4
-		;bcc		no_consol		;2+1
-		;inc		sector+1		;5
-		;bne		no_consol		;2+1
-		;inc		sector+2		;5 - 23
-		;jmp		no_consol
 fastforward:
 		lda		sector
 		add		#248			;4
@@ -955,6 +943,16 @@ pause_engine
 		dey
 		bne	pause_engine
 
+;wait_key
+		INC_RTC
+		;jsr		ewait
+		bit		irqst
+		bvs		chk_consol
+		ldy 		$d209
+		cpy		#28 ; ESC
+		bne		chk_consol
+		jmp		ExitToDosNow
+chk_consol
 		ldy		consol
 		cpy		#$6 ; bare start key
 		bne		no_switch
