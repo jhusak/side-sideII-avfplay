@@ -118,8 +118,8 @@ zp_end:
 
 		;clear PIA interrupts
 		mva		#$3c pactl
-		lda		porta
-		lda		portb
+		;lda		porta
+		;lda		portb
 
 		jsr store_zp
 		
@@ -962,19 +962,11 @@ lcnt	dta 0
 
 ;============================================================================
 .proc FlipToTextDisplay
-		;kill audio and VBI
 		sei
-
-		; ???
-		; lda		#0
-		; sta		nmien
-		
-		; ???
+		; kill audio
 		mva		#$a0 audc1
-		
 		;kill VBI
 		mva		#0 nmien
-		
 		;turn ROM back on
 		mva		#$ff portb
 		
