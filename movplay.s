@@ -473,7 +473,12 @@ sndread_loop_start:
 		sty		stimer
 		:7 lda	ide_data		;28
 		mwa		#dlist dlistl
-		jsr inclocalrtc
+		inc zp_store+20
+		bne iend
+		inc zp_store+19
+		bne iend
+		inc zp_store+18
+iend
 
 		ldx		#<(-18)
 eat_loop:
