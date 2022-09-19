@@ -138,12 +138,14 @@ clear_zp:
 		bpl		clear_zp
 
 		;nuke startup bytes to force cold reset
+		; ???
 		sta		pupbt1
 		sta		pupbt2
 		sta		pupbt3
 
-
+		; store to force 3 cycle command
 		mva 	#$e0	$e0
+
 		;set up audio
 		; timer 1: 16-bit linked, audio enabled
 		; timer 2: 16-bit linked, audio disabled
@@ -473,12 +475,8 @@ sndread_loop_start:
 		sty		stimer
 		:7 lda	ide_data		;28
 		mwa		#dlist dlistl
-		inc zp_store+20
-		bne iend
-		inc zp_store+19
-		bne iend
-		inc zp_store+18
-iend
+
+		INC_RTC
 
 		ldx		#<(-18)
 eat_loop:
@@ -693,14 +691,14 @@ wait_loop_offset = *-2
 		jmp		main_loop
 .endp
 
-inclocalrtc
+INC_RTC		.macro
 		inc zp_store+20
-		bne incend
+		bne iend
 		inc zp_store+19
-		bne incend
+		bne iend
 		inc zp_store+18
-incend
-		rts
+iend
+		.endm
 
 
 ExitToDosNow
@@ -717,17 +715,25 @@ ExitToDos
 		jsr ewait
 		dey
 		bne	ewait
+		jsr 	restore_system
 		cli
 		rts
 		;jmp	(dosvec)
 
 ewait
-		jsr	inclocalrtc
+		INC_RTC
+		WAITFRAME
+		rts
+
+restore_system
+		rts
+
+WAITFRAME	.macro
 		bit VCOUNT
 		bpl *-3
 		bit VCOUNT
 		bmi *-3
-		rts
+		.endm
 
 .proc	restore_zp
 		ldx		#0
@@ -975,9 +981,12 @@ lcnt	dta 0
 .proc FlipToTextDisplay
 		;kill audio and VBI
 		sei
-		lda		#0
-		sta		nmien
+
+		; ???
+		; lda		#0
+		; sta		nmien
 		
+		; ???
 		mva		#$a0 audc1
 		
 		;kill VBI
@@ -986,6 +995,7 @@ lcnt	dta 0
 		;turn ROM back on
 		mva		#$ff portb
 		
+		; wait for the display to be finished
 		lda		#248/2
 		cmp:rne	vcount
 		
