@@ -31,6 +31,7 @@
 ; 1 or 2.
 CODE_FOR_SIDE	equ	1
 CODE_FOR_INCOGNITO	equ	2
+BETA	equ	1
 
 ; please define CODE to 1 or 2 in mads command line: -d:CODE=(1|2)
 	.error (.not .def (CODE))
@@ -113,6 +114,7 @@ zp_end:
 
 .proc	main
 		jsr graphics0
+
 		mva #0	goodcnt
 		sei
 
@@ -132,15 +134,10 @@ clear_zp:
 		dex
 		bpl		clear_zp
 
-		;nuke startup bytes to force cold reset
-		; ???
-		;sta		pupbt1
-		;sta		pupbt2
-		;sta		pupbt3
-
-		; store to force 3 cycle command
+		; store to force 3 cycle command in main loop
 		mva 	#$e0	$e0
 
+		jsr reset_sound
 		;set up audio
 		; timer 1: 16-bit linked, audio enabled
 		; timer 2: 16-bit linked, audio disabled
@@ -155,7 +152,6 @@ clear_zp:
 
 		;initialize text display
 		jsr		FlipToTextDisplay
-
 		
 		jsr		LogImprint
 		dta		' 50/60fps video player by Avery Lee '*,$9b
@@ -176,7 +172,7 @@ clear_zp:
 		lda		#$08
 		bit		pal
 		bne		is_ntsc
-		
+		; PAL VARIABLES SECTION
 		mva 		#{bit.b 0 } ntsc_eat_cycle
 		mva		#$40 prior_byte_1
 		mva		#$c7 prior_byte_2
@@ -184,9 +180,10 @@ clear_zp:
 		mva		#<(soundbuf-$100+68) wait_loop_offset
 		
 		jsr		LogImprint
-		dta		'Video mode... PAL (need PAL video)',$9b,0
+		dta		'Video mode: PAL (need PAL video)',$9b,0
 		
 		jmp		is_pal
+		; NTSC VARIABLES SECTION
 is_ntsc:
 		mva		#$c0 prior_byte_1
 		mva		#$47 prior_byte_2
@@ -194,7 +191,7 @@ is_ntsc:
 		mva		#<(soundbuf-$100+18) wait_loop_offset
 
 		jsr		LogImprint
-		dta		'Video mode... NTSC (need NTSC video)',$9b,0		
+		dta		'Video mode: NTSC (need NTSC video)',$9b,0		
 is_pal:
 
 		;turn off SIDE cart
@@ -203,6 +200,7 @@ is_pal:
 		lda $d013 ; ???
 		sta $3fa ; ???
 
+		; needed because sometimes background is not black.
 		mva		#$00 colbk
 
 		;reset drive
@@ -270,8 +268,10 @@ cmd_ok:
 		
 		jsr		LogImprint
 		dta		$9b
+		.if (RELEASE == BETA)
 		dta		'BETA VERSION',$9b
 		dta		$9b
+		.endif
 		dta		'Ready to play.',$9b
 		dta		'Press ','SPACE'*,' to play once',$9b
 		dta		'Press ','RETURN'*,' to play looped',$9b
@@ -523,11 +523,7 @@ main_loop_start:
 		; 256*256*256=16777216, which gives about 274 minutes.
 		; after that the movie plays again out of sync.
 		; someday we will fix this.
-		;ldx		#$a0
-		;bit		pause
-		;bmi		no_carry ; pause
-		;ldx		#$a0	; no pause
-; volume	=	*-1
+
 		add		#17			;4
 		sta		sector			;4
 		bcc		no_carry		;2+1
@@ -535,7 +531,6 @@ main_loop_start:
 		bne		no_carry		;2+1
 		inc		sector+2		;5 - 23
 no_carry:
-		;stx		audc1
 		
 		; :3	nop ; 7 - skips at about one minute
 		;Kick the read.
@@ -549,10 +544,6 @@ no_carry:
 		sta		ide_cmd ; 4 - 12
 		ldy		soundbuf
 
-		;bit		$0100
-		;bit		$0100
-		;nop
-		
 		; logic:
 		; start - toggle pause
 		; select+start (playing) - begin
@@ -699,13 +690,13 @@ endwait
 		bne	endwait
 		jsr	FlipToTextDisplay
 		jsr	restore_zp
-		jsr 	restore_system
+		mva		#$40 nmien
+		jsr	reset_sound
 		cli
 		rts
 		;jmp	(dosvec)
 
-restore_system
-		mva		#$40 nmien
+reset_sound
 		lda #3
 		ldx #$0f
 again
