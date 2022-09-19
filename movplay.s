@@ -121,14 +121,9 @@ zp_end:
 		lda		porta
 		lda		portb
 
+		jsr store_zp
 		
 		;zero working variables
-		ldx		#0
-store_zp:
-		lda		0,x
-		sta 		zp_store,x
-		dex
-		bne		store_zp
 
 		ldx		#zp_end-zp_start
 		lda		#0
@@ -139,9 +134,9 @@ clear_zp:
 
 		;nuke startup bytes to force cold reset
 		; ???
-		sta		pupbt1
-		sta		pupbt2
-		sta		pupbt3
+		;sta		pupbt1
+		;sta		pupbt2
+		;sta		pupbt3
 
 		; store to force 3 cycle command
 		mva 	#$e0	$e0
@@ -160,6 +155,7 @@ clear_zp:
 
 		;initialize text display
 		jsr		FlipToTextDisplay
+
 		
 		jsr		LogImprint
 		dta		' 50/60fps video player by Avery Lee '*,$9b
@@ -204,10 +200,9 @@ is_pal:
 		;turn off SIDE cart
 		mva		#$c0 side_sdx_control
 		mva		#$80 side_cart_control
-		lda $d013
-		sta $3fa
+		lda $d013 ; ???
+		sta $3fa ; ???
 
-		
 		mva		#$00 colbk
 
 		;reset drive
@@ -250,6 +245,7 @@ fatal_cmd_error:
 		jsr		LogCmdErrorData
 		jmp		ExitToDos
 cmd_ok:
+		
 		;set up for 8-bit transfers
 		mva		#32 ide_nsecs
 		lda		#IDE_CMD_SET_MULTIPLE_MODE
@@ -708,13 +704,14 @@ ExitToDos
 		ldy #150
 		tya
 		pha
-		jsr FlipToTextDisplay
-		jsr restore_zp
 		pla
 		tay
+endwait
 		jsr ewait
 		dey
-		bne	ewait
+		bne	endwait
+		jsr	FlipToTextDisplay
+		jsr	restore_zp
 		jsr 	restore_system
 		cli
 		rts
@@ -726,6 +723,7 @@ ewait
 		rts
 
 restore_system
+		mva		#$40 nmien
 		rts
 
 WAITFRAME	.macro
@@ -737,13 +735,20 @@ WAITFRAME	.macro
 
 .proc	restore_zp
 		ldx		#0
-loop
 		lda 		zp_store,x
 		sta		0,x
 		inx
-		bne		loop
+		bne		restore_zp+2
 		rts
 
+.endp
+.proc	store_zp
+		ldx		#0
+		lda		0,x
+		sta 		zp_store,x
+		inx
+		bne		store_zp+2
+		rts
 .endp
 ;============================================================================
 .proc	IdeDoCmd
