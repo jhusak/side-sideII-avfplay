@@ -88,7 +88,7 @@ pause		dta		0
 waitcnt	dta		0
 ;nextpg	dta		0
 delycnt	dta		0
-;pending	dta		0
+volume	dta		0
 sector	dta	0
 		dta	0
 		dta	0
@@ -350,6 +350,7 @@ err:
 
 		jmp main_loop_start
 
+		// eat whole frame when ide was not ready
 main_loop_delay:
 		mva		#0 dmactl
 		
@@ -377,28 +378,25 @@ main_loop:
 		bcs		err
 		and		#$04
 		beq		main_loop
-		lda	#$00
-volume	=	*-1
-		sta	audc1
+
 		lda	volume
-		bne	@+
-		lda	#$af
-init_volume	=	*-1
+		sta	audc1
+		bne	chk_pause
+
+		lda	init_volume:#$af
 		sta	volume
-@
-		
+chk_pause
 		lda	pause
-		beq	@+
+		beq	nopause
 		; IDE Ready to read frame, so read by hand
 		; and display paused frame from memory
 		jsr	FlipToPauseDisplay
-		; mwa		#dlist dlistl
-@
+nopause
 		lda $d209
 		cmp #28
 		sne
 		jmp ExitToDosNow
-		;pha:pla
+
 		ldx		#$c0			;2 (changed to $47 for PAL)
 prior_byte_1 = * - 1
 		lda		#$47			;2 (changed to $c0 for PAL)
@@ -481,11 +479,11 @@ sndread_loop_start:
 		bit.w		$00
 		PLAY_SAMPLE				;8
 		:7 lda	ide_data		;28
-		mwa		#dlist dlistl
+		mwa		#dlist dlistl	;12
 
-		INC_RTC
+		INC_RTC		; max 6+2+6+2+6 = 22
 
-		ldx		#<(-18)
+		ldx		#<(-18) 	;2
 eat_loop:
 		sta		wsync
 		ldy		ide_data
@@ -540,7 +538,7 @@ main_loop_start:
 		inc		sector+2		;5 - 23
 no_carry:
 		
-		; :3	nop ; 7 - skips at about one minute
+		; :3	nop ; 7 - skips at about one minute when uncommented
 		;Kick the read.
 		lda		#17
 		;We have 47 scanlines to wait (~4ms), so in the meantime let's play
@@ -643,6 +641,8 @@ fastforward:
 		sta		sector+1
 		bcc		no_consol		;2+1
 		inc		sector+2		;5 - 23
+		;bcc		no_consol		;2+1
+		;inc		sector+3		;5 - 23
 
 no_consol:
 		ldx		#<(-17)			;modified to -67 for PAL
