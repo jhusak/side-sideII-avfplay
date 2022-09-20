@@ -1,14 +1,23 @@
 # main default rule
+#
+BETA=1
+RELEASE=$(BETA)
 c: c_side c_incognito
 
 date.inc:
 	date -r `git show --format=%ct | head -1 ` +'%d.%m.%Y' | tr -d $$'\n' >$@
 
 c_side: date.inc
-	mads movplay.s -d:CODE=1 -o:bin/MOVPLAY_SIDE.XEX
+	mads movplay.s -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:bin/MOVPLAY_SIDE_POKEY.XEX
+	for covox in D280 D500 D600 D700 ; do  \
+	mads movplay.s -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:bin/MOVPLAY_SIDE_COVOX_$$covox.XEX ;\
+	done
 
 c_incognito: date.inc
-	mads movplay.s -d:CODE=2 -o:bin/MOVPLAY_INCOGNITO.XEX
+	mads movplay.s -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:bin/MOVPLAY_INCOGNITO_POKEY.XEX
+	for covox in D280 D500 D600 D700 ; do  \
+	mads movplay.s -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:bin/MOVPLAY_INCOGNITO_COVOX_$$covox.XEX ;\
+	done
 
 # general rule, sometimes helpful, so here it is.
 %.xex: %.s
