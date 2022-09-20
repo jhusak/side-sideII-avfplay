@@ -113,6 +113,7 @@ zp_end:
 		opt		o+
 
 .proc	main
+		jsr reset_sound
 		jsr graphics0
 
 		mva #0	goodcnt
@@ -137,10 +138,10 @@ clear_zp:
 		; store to force 3 cycle command in main loop
 		mva 	#$e0	$e0
 
-		jsr reset_sound
 		;set up audio
 		; timer 1: 16-bit linked, audio enabled
 		; timer 2: 16-bit linked, audio disabled
+		.if (COVOX==0)
 		lda		#$a0
 		sta		audc1
 		sta		audc2
@@ -149,6 +150,7 @@ clear_zp:
 		mva		#$ff audf2
 		mva		#$71 audctl
 		mva		#$03 skctl
+		.endif
 
 		;initialize text display
 		jsr		FlipToTextDisplay
@@ -160,13 +162,25 @@ clear_zp:
 	.if (CODE == CODE_FOR_INCOGNITO)
 		dta		' Incognito version '*
 		ins		'date.inc'+128
-		dta		'       '*,$9b,$9b,0
+		dta		'       '*,$9b
 	.endif
 	.if (CODE == CODE_FOR_SIDE)
 		dta		' SIDE/SIDEII version '*
 		ins		'date.inc'+128
-		dta		'    '*,$9b,$9b,0
+		dta		'     '*,$9b
 	.endif
+	.if (COVOX==0)
+		dta		' AUDIO ON (FIRST) POKEY CHIP        '*
+	.elif (COVOX==$d280)
+		dta		' AUDIO ON COVOX UNDER $D280         '*
+	.elif (COVOX==$d500)
+		dta		' AUDIO ON COVOX UNDER $D500         '*
+	.elif (COVOX==$d600)
+		dta		' AUDIO ON COVOX UNDER $D600         '*
+	.elif (COVOX==$d700)
+		dta		' AUDIO ON COVOX UNDER $D700         '*
+	.endif
+		dta		$9b,$9b,0
 
 		;set up NTSC/PAL differences
 		lda		#$08
@@ -205,7 +219,7 @@ is_pal:
 
 		;reset drive
 		jsr		LogImprint
-		dta		'Resetting IDE device...',0
+		dta		'Resetting IDE device... ',0
 		
 		ldx		#$7e
 		stx		$d5f8
@@ -272,7 +286,7 @@ cmd_ok:
 		dta		'BETA VERSION',$9b
 		dta		$9b
 		.endif
-		dta		'Ready to play.',$9b
+		dta		'Movie ready to play.',$9b
 		dta		'Press ','SPACE'*,' to play once',$9b
 		dta		'Press ','RETURN'*,' to play looped',$9b
 		dta		$9b
@@ -419,15 +433,13 @@ prior_byte_2 = * - 1
 		
 .if [(#%3)==2]
 		ldy.w		zpsndbuf+#		;5, 6, 7
-		sty		audf1			;8, 9, 10, 11
-		sty		stimer			;12, 13, 14, 15
+		PLAY_SAMPLE				;8,9,10,11,12,13,14,15
 .if (#!=191)	
 		:4 nop
 .endif
 .else
 		ldy		zpsndbuf+#		;5, 6, 7
-		sty		audf1			;8, 9, 10, 11
-		sty		stimer			;12, 13, 14, 15
+		PLAY_SAMPLE				;8,9,10,11,12,13,14,15
 .endif
 
 .endr
@@ -449,8 +461,7 @@ sndread_loop_start:
 		ldy		ide_data					;4
 		mva		ide_data zpsndbuf+$20,x		;9
 		lda		ide_data					;4
-		sty		audf1						;4
-		sty		stimer						;4
+		PLAY_SAMPLE				;8
 		sta		zpsndbuf+$40,x				;4
 		mva		ide_data zpsndbuf+$60,x		;9
 		mva		ide_data zpsndbuf+$80,x		;9
@@ -468,8 +479,7 @@ sndread_loop_start:
 		mva		ide_data soundbuf+$40
 		lda		ide_data
 		bit.w		$00
-		sty		audf1
-		sty		stimer
+		PLAY_SAMPLE				;8
 		:7 lda	ide_data		;28
 		mwa		#dlist dlistl
 
@@ -484,8 +494,7 @@ eat_loop:
 ntsc_eat_cycle = *
 		bne		*+2
 		nop
-		sty		audf1
-		sty		stimer
+		PLAY_SAMPLE				;8
 		:8 lda	ide_data		;32
 		inx
 		bne		eat_loop
@@ -504,8 +513,7 @@ ntsc_eat_cycle = *
 		pha:pla				; 7
 		bit		$00		; 3
 		nop				; 2
-		sty		audf1		; 4
-		sty		stimer		; 4 - 28
+		PLAY_SAMPLE				;8 - 28
 		
 main_loop_start:				
 		;Okay, now we can issue the next read. Bump the sector number at
@@ -554,8 +562,7 @@ no_carry:
 		lda		consol
 		cmp		#$6 ; bare start key
 
-		sty		audf1
-		sty		stimer
+		PLAY_SAMPLE		; 8
 
 		bne		no_switch
 		cmp		back_consol
@@ -655,8 +662,7 @@ wait_loop_offset = *-2
 		nop
 		bit.b 		0
 		
-		sty		audf1
-		sty		stimer
+		PLAY_SAMPLE		; 8
 
 		lda		consol
 		lsr
@@ -666,6 +672,22 @@ wait_loop_offset = *-2
 		bne		wait_loop
 		jmp		main_loop
 .endp
+
+; This macro has to be exactly 8 cycles long
+.if (COVOX == 0)
+PLAY_SAMPLE	.macro
+		; pokey PWM play
+		sty		audf1
+		sty		stimer
+.endm
+.else
+PLAY_SAMPLE	.macro
+		; COVOX PCM play
+		sty	COVOX
+		sty 	COVOX+2
+.endm
+.fi
+
 
 INC_RTC		.macro
 		inc zp_store+20
