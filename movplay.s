@@ -699,6 +699,13 @@ PLAY_SAMPLE	.macro
 		sty		audf1
 		sty		stimer
 .endm
+.elseif (COVOX==$D300)
+PLAY_SAMPLE	.macro
+		; COVOX PCM play
+		sty	COVOX
+		sty 	COVOX
+.endm
+
 .else
 PLAY_SAMPLE	.macro
 		; COVOX PCM play
