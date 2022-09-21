@@ -88,7 +88,9 @@ pause		dta		0
 waitcnt	dta		0
 ;nextpg	dta		0
 delycnt	dta		0
+.if (COVOX==0)
 volume	dta		0
+.endif
 sector	dta	0
 		dta	0
 		dta	0
@@ -141,7 +143,6 @@ clear_zp:
 		;set up audio
 		; timer 1: 16-bit linked, audio enabled
 		; timer 2: 16-bit linked, audio disabled
-		.if (COVOX==0)
 		lda		#$a0
 		sta		audc1
 		sta		audc2
@@ -150,7 +151,6 @@ clear_zp:
 		mva		#$ff audf2
 		mva		#$71 audctl
 		mva		#$03 skctl
-		.endif
 
 		;initialize text display
 		jsr		FlipToTextDisplay
@@ -295,8 +295,11 @@ cmd_ok:
 		dta		'  ',' START  '*,' - Pause On/Off',$9b
 		dta		'  ',' OPTION '*,' - Fast Forward',$9b
 		dta		'  ',' SELECT '*,' - Wind Back',$9b
+		.if (COVOX==0)
 		dta		'  ',' SHIFT '*,'+',' OPTION '*,' - Volume UP',$9b
-		dta		'  ',' SHIFT '*,'+',' SELECT '*,' - Volume DOWN',$9b,0
+		dta		'  ',' SHIFT '*,'+',' SELECT '*,' - Volume DOWN',$9b
+		.endif
+		dta		0
 
 getagain
 		ldy		#1
@@ -344,9 +347,11 @@ err:
 		mva		#<[START_SECTOR/65536] sector+2
 		lda		#$e0					;2
 		sta		sector+3				;3
+		.if (COVOX==0)
 		lda #0
 		sta volume
 		sta audc1
+		.endif
 
 		jmp main_loop_start
 
@@ -380,12 +385,14 @@ main_loop:
 		and		#$04
 		beq		main_loop
 
+		.if (COVOX==0)
 		lda	volume
 		sta	audc1
 		bne	chk_pause
 
 		lda	init_volume:#$af
 		sta	volume
+		.endif
 chk_pause
 		lda	pause
 		beq	nopause
@@ -500,9 +507,11 @@ ntsc_eat_cycle = *
 		inx
 		bne		eat_loop
 		
+		.if (COVOX==0)
 		; here update, because time room
 		lda volume
 		sta init_volume
+		.endif
 		inc goodcnt
 		sne
 		dec goodcnt
@@ -590,6 +599,7 @@ reset_play:
 		bne		no_consol
 no_start:	cmp		#$5 ; select
 		bne		no_select
+		.if (COVOX==0)
 		lda		skctl
 		and		#$8
 		bne		do_rewind
@@ -599,6 +609,7 @@ no_start:	cmp		#$5 ; select
 		bcs		no_consol
 		dec		volume
 		bne		no_consol
+		.endif
 ;
 
 ;
@@ -627,6 +638,7 @@ nextcheck:
 		bcc		no_consol
 no_select:	cmp		#$3
 		bne		no_consol
+		.if (COVOX==0)
 		lda		skctl
 		and		#$8
 		bne		fastforward
@@ -636,6 +648,7 @@ no_select:	cmp		#$3
 		bcc		no_consol
 		inc		volume
 		bne		no_consol
+		.endif
 
 fastforward:
 		lda		sector
