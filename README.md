@@ -9,10 +9,12 @@ The player replays avf files written block by block to CF card - **for now** the
 - fast 120x forward and rewind
 - shortcut to go to beginning
 - volume up/down
-- pause - reads whole frame to buffer, then displays int from RAM.
-- COVOX under addressees $D280, $D500, $D600, $D700 (binaries with apriopriate names, look into bin catalog), mono, both channels left and right.
-- DOS friendly, may be launched from practical any DOS (tested on 6.4 and Sparta), load address $2800, exits cleanly do DOS.
+- pause - reads whole frame to buffer, then displays int from RAM
+- COVOX under addressees $D280, $D500, $D600, $D700 (binaries with apriopriate names, look into bin catalog), mono, both channels left and right
+- DOS friendly, may be launched from practical any DOS (tested on 6.4 and Sparta), load address $2800, exits cleanly do DOS
 - ESC key returns to the place movplay was started in (to DOS, selftest, etc)
+- realtime clock friendly
+
 
 but you must prepare CF card as before - write raw data to it.
 
