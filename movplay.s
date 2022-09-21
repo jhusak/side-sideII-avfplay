@@ -353,6 +353,7 @@ err:
 		// eat whole frame when ide was not ready
 main_loop_delay:
 		mva		#0 dmactl
+		sta		audc1
 		
 		lda		#124
 		cmp:rne	vcount
