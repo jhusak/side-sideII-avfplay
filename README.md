@@ -2,7 +2,7 @@
 
 This is the player for SIDE/SIDEII cartridges for Atari 8-bit Computers. Additionaly, after changing the destination compatible IDE device, the player will play movies from CF put in INCOGNITO board (for binaries look into "bin" catalog)
 
-The player replays avf files written block by block to CF card.
+The player replays avf files written block by block to CF card - **for now** the max length of the movie played is 8GB, which is about 5 hours (will change after tests to 128 GB MAX, which will give over 80 hours of movies)
 
 ## New features:
 - sound quality best achievable on POKEY ANTIC and GTIA turned on the same time
