@@ -1,4 +1,4 @@
-MOVPLAY
+=== MOVPLAY for SIDE/SIDEII cartridges ===
 
 This is the player for SIDE/SIDEII cartridges for Atari 8-bit Computers. Additionaly, after changing the destination compatible IDE device, the player will play movies from CF put in INCOGNITO board (for binaries look into "bin" catalog)
 
@@ -13,6 +13,8 @@ New features:
 - COVOX under addressees $D280, $D500, $D600, $D700 (binaries with apriopriate names, look into bin catalog), mono, both channels left and right.
 - DOS friendly, may be launched from practical any DOS (tested on 6.4 and Sparta), load address $2800, exits cleanly do DOS.
 - ESC key returns to the place movplay was started in (to DOS, selftest, etc)
+
+but you must prepare CF card as before - write raw data to it.
 
 The player originally written by Phaeron (Avery Lee), link: https://atariage.com/forums/topic/211689-60-fps-video-using-side-2/page/4/?tab=comments#comment-2796714 playing samples on POKEY chip with fairly new method PWM (Pulse Width Modulation) has been tweaked by me to play sound samples exactly in the same cycle of frame. PWM method gives about 106 allowable levels of sound, which is almost 7 bit (128 levels). However, the timing is crucial, because shifting one sample one cycle forward gives two levels distortion (so it is only merely 6 bits signal-noise distance) - theoretically this should be not noticable in PWM, but in fact it is.
 
