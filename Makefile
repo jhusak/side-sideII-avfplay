@@ -1,22 +1,31 @@
 # main default rule
 #
 BETA=1
-RELEASE=$(BETA)
+PROD=0
+RELEASE=$(PROD)
 c: c_side c_incognito
 
 date.inc:
 	date -r `git show --format=%ct | head -1 ` +'%d.%m.%Y' | tr -d $$'\n' >$@
 
 c_side: date.inc
-	mads movplay.s -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:bin/MOVPLAY_SIDE_POKEY.XEX
+	dir=bin/side/pokey ;\
+	mkdir -p $$dir;\
+	mads movplay.s -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:$$dir/MOVPLAY.XEX
 	for covox in D280 D500 D600 D700 ; do  \
-	mads movplay.s -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:bin/MOVPLAY_SIDE_COVOX_$$covox.XEX ;\
+	dir=bin/side/covox_$$covox;  \
+	mkdir -p $$dir;\
+	mads movplay.s -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:$$dir/MOVPLAY.XEX ;\
 	done
 
 c_incognito: date.inc
-	mads movplay.s -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:bin/MOVPLAY_INCOGNITO_POKEY.XEX
+	dir=bin/incognito/pokey ;\
+	mkdir -p $$dir;\
+	mads movplay.s -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:$$dir/MOVPLAY.XEX
 	for covox in D280 D500 D600 D700 ; do  \
-	mads movplay.s -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:bin/MOVPLAY_INCOGNITO_COVOX_$$covox.XEX ;\
+	dir=bin/incognito/covox_$$covox;  \
+	mkdir -p $$dir;\
+	mads movplay.s -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:$$dir/MOVPLAY.XEX ;\
 	done
 
 # general rule, sometimes helpful, so here it is.

@@ -483,6 +483,8 @@ sndread_loop_start:
 
 		INC_RTC		; max 6+2+6+2+6 = 22
 
+		; ROOM FOR SOMETHING
+
 		ldx		#<(-18) 	;2
 eat_loop:
 		sta		wsync
@@ -600,6 +602,8 @@ no_start:	cmp		#$5 ; select
 
 ;
 do_rewind:
+		;lda		sector+3
+		;bne		nextcheck
 		lda		sector+2
 		bne		nextcheck
 		lda		sector+1
@@ -634,15 +638,16 @@ no_select:	cmp		#$3
 
 fastforward:
 		lda		sector
-		add		#248			;4
+		;add		#248			;4
+		add		#0			;4
 		sta		sector			;4
 		lda		sector+1
-		adc		#7
+		adc		#34
 		sta		sector+1
 		bcc		no_consol		;2+1
 		inc		sector+2		;5 - 23
-		;bcc		no_consol		;2+1
-		;inc		sector+3		;5 - 23
+		bne		no_consol		;2+1
+		inc		sector+3		;5 - 23
 
 no_consol:
 		ldx		#<(-17)			;modified to -67 for PAL
