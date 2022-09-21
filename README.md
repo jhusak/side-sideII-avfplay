@@ -8,7 +8,7 @@ The player replays avf files written block by block to CF card - **for now** the
 - sound quality best achievable on POKEY ANTIC and GTIA turned on the same time
 - fast 120x forward and rewind
 - shortcut to go to beginning
-- volume up/down
+- volume up/down (POKEY only)
 - pause - reads whole frame to buffer, then displays int from RAM
 - COVOX under addressees $D280, $D500, $D600, $D700 (binaries with apriopriate names, look into bin catalog), mono, both channels left and right
 - DOS friendly, may be launched from practical any DOS (tested on 6.4 and Sparta), load address $2800, exits cleanly do DOS
