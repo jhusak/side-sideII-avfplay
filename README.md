@@ -1,10 +1,10 @@
-=== MOVPLAY for SIDE/SIDEII cartridges ===
+# MOVPLAY for SIDE/SIDEII cartridges
 
 This is the player for SIDE/SIDEII cartridges for Atari 8-bit Computers. Additionaly, after changing the destination compatible IDE device, the player will play movies from CF put in INCOGNITO board (for binaries look into "bin" catalog)
 
 The player replays avf files written block by block to CF card.
 
-New features:
+## New features:
 - sound quality best achievable on POKEY ANTIC and GTIA turned on the same time
 - fast 120x forward and rewind
 - shortcut to go to beginning
@@ -15,6 +15,8 @@ New features:
 - ESC key returns to the place movplay was started in (to DOS, selftest, etc)
 
 but you must prepare CF card as before - write raw data to it.
+
+## Varia and technical information
 
 The player originally written by Phaeron (Avery Lee), link: https://atariage.com/forums/topic/211689-60-fps-video-using-side-2/page/4/?tab=comments#comment-2796714 playing samples on POKEY chip with fairly new method PWM (Pulse Width Modulation) has been tweaked by me to play sound samples exactly in the same cycle of frame. PWM method gives about 106 allowable levels of sound, which is almost 7 bit (128 levels). However, the timing is crucial, because shifting one sample one cycle forward gives two levels distortion (so it is only merely 6 bits signal-noise distance) - theoretically this should be not noticable in PWM, but in fact it is.
 
