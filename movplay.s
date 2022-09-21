@@ -638,11 +638,11 @@ no_select:	cmp		#$3
 
 fastforward:
 		lda		sector
-		;add		#248			;4
-		add		#0			;4
+		add		#248			;4
+		;add		#0			;4
 		sta		sector			;4
 		lda		sector+1
-		adc		#34
+		adc		#7
 		sta		sector+1
 		bcc		no_consol		;2+1
 		inc		sector+2		;5 - 23
