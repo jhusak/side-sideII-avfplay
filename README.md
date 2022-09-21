@@ -28,7 +28,7 @@ The Altirra Atari Emulator by Avery Lee was used to check every sample plays at 
 
 The advantage of PWM method is that it is somehow prone to electrical hum produced by moving electrons and electric/magnetic fields inside the computer. When you switch to the COVOX version, the electrical noise is more audible due to more "analog" nature of COVOX. The second is that you get programatically free volume adjustment by setting the static volume of POKEY channel. The disadvantage important to our children and pets is that 15.6 khz whistle is audible for them and annoying.
 
-Well, TV ingeneers were too selfish - when THEY do not hear anythig from TV set, it is good.
+Well, TV ingeneers were too selfish - when THEY do not hear anything from TV set, it is good.
 
 Happy testing (feel free to raise issues:)
 
