@@ -636,7 +636,7 @@ nextcheck:
 		;sta		sector+2
 		clc
 		bcc		no_consol
-no_select:	cmp		#$3
+no_select:	cmp		#$3 ; option
 		bne		no_consol
 		.if (COVOX==0)
 		lda		skctl
@@ -906,9 +906,9 @@ clear_loop_2:
 		mva 		#$a0	audc1
 		mva		#64	lcnt
 		mwa		#pause_imaddr	a3
-		:1 lda ide_data	; eat sound
 		ldy		#0
 line_next
+		:1 lda ide_data	; eat sound
 		ldx		#40
 @		mva		ide_data (a3),y+ ; transfer line
 		dex
@@ -925,7 +925,6 @@ line_next
 @		mva		ide_data (a3),y+ ; transfer line
 		dex
 		bne @-
-		:1 lda ide_data	; eat sound
 		tya
 		clc
 		adc	a3
