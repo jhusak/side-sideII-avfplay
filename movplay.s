@@ -128,6 +128,10 @@ zp_end:
 		ora	#$4
 		sta	$D302
 		.endif
+		.if (COVOX!=0)
+		lda 	#$ff
+		sta	COVOX
+		.endif
 		jsr graphics0
 
 		mva #0	goodcnt
@@ -163,6 +167,14 @@ clear_zp1:
 		
 		bne		clear_zp1
 cend
+		sty		zpsndbuf
+
+		lda		#$ff
+		ldx 		#0
+fillsndbuff
+		sta		soundbuf,x
+		dex
+		bne		fillsndbuff
 		; store to force 3 cycle command in main loop
 		mva 	#$e0	$e0
 
@@ -815,7 +827,7 @@ WAITFRAME	.macro
 .proc	restore_zp
 		ldx		#0
 		lda 		zp_store,x
-		sta		0,x
+		sta		zpsndbuf,x
 		inx
 		bne		restore_zp+2
 		rts
@@ -823,7 +835,7 @@ WAITFRAME	.macro
 .endp
 .proc	store_zp
 		ldx		#0
-		lda		0,x
+		lda		zpsndbuf,x
 		sta 		zp_store,x
 		inx
 		bne		store_zp+2

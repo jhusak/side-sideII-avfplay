@@ -1,4 +1,8 @@
-Date:   Sep 21 16:47:57 2022
+Date:   Sep 25 12:35:40 2022
+
+    fixed click at start. Now plays without click.
+
+Date:   Sep 25 10:38:43 2022
 
     added SimCovox at $D300 support;
     fixed annoying glitch at the start
