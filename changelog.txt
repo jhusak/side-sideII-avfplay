@@ -1,91 +1,96 @@
-Date:   Wed Sep 21 16:47:57 2022 +0200
+Date:   Sep 21 16:47:57 2022
+
+    added SimCovox at $D300 support;
+    fixed annoying glitch at the start
+
+Date:   Sep 21 16:47:57 2022
 
     removed volume stuff from covox versions
 
-Date:   Wed Sep 21 10:50:46 2022 +0200
+Date:   Sep 21 10:50:46 2022
 
     added sound muting when frame skipping due to long card response
 
-Date:   Tue Sep 20 18:59:22 2022 +0200
+Date:   Sep 20 18:59:22 2022
 
     code tweaks and cleanup
 
-Date:   Tue Sep 20 17:48:31 2022 +0200
+Date:   Sep 20 17:48:31 2022
 
     updated Makefile with defs and COVOX build
 
-Date:   Tue Sep 20 13:29:37 2022 +0200
+Date:   Sep 20 13:29:37 2022
 
     beta version of working player
 
-Date:   Mon Sep 19 16:28:09 2022 +0200
+Date:   Sep 19 16:28:09 2022
 
     snd reset upon exit
 
-Date:   Mon Sep 19 15:55:56 2022 +0200
+Date:   Sep 19 15:55:56 2022
 
     fixed escape in pause mode
 
-Date:   Mon Sep 19 11:31:55 2022 +0200
+Date:   Sep 19 11:31:55 2022
 
     inline inclocalrtc due to too long time
 
-Date:   Mon Sep 19 10:32:28 2022 +0200
+Date:   Sep 19 10:32:28 2022
 
     changed lda to bit in waitframe
 
-Date:   Mon Sep 19 10:28:04 2022 +0200
+Date:   Sep 19 10:28:04 2022
 
     added rtc counting during play; changed return to dos to RTS
 
-Date:   Sat Sep 17 14:13:24 2022 +0200
+Date:   Sep 17 14:13:24 2022
 
     added esc to menu
 
-Date:   Fri Sep 16 19:13:43 2022 +0200
+Date:   Sep 16 19:13:43 2022
 
     exits to dos somehow - to extended test
 
-Date:   Thu Sep 15 19:25:54 2022 +0200
+Date:   Sep 15 19:25:54 2022
 
     added exit to dos when error
 
-Date:   Thu Mar 24 00:13:52 2022 +0100
+Date:   Mar 24 00:13:52 2022
 
     Fixed beep at the beginning; Pause is now offline (safe)
 
-Date:   Sat Mar 12 01:00:23 2022 +0100
+Date:   Mar 12 01:00:23 2022
 
     added volume up/down, accelerated winding x2
 
-Date:   Fri Mar 11 23:38:42 2022 +0100
+Date:   Mar 11 23:38:42 2022
 
     added pause, which for now reads the same 17 sectors every frame;
 
-Date:   Wed Mar 9 23:48:18 2022 +0100
+Date:   Mar 9 23:48:18 2022
 
     added fast forward and rewind
 
-Date:   Tue Mar 8 21:29:59 2022 +0100
+Date:   Mar 8 21:29:59 2022
 
     added code switches to compile to work with INCOGNITO or with SIDE
 
-Date:   Sun Mar 6 21:15:30 2022 +0100
+Date:   Mar 6 21:15:30 2022
 
     credits added
 
-Date:   Sun Mar 6 20:26:16 2022 +0100
+Date:   Mar 6 20:26:16 2022
 
     fixed all uneven alignments
 
-Date:   Sun Mar 6 20:04:41 2022 +0100
+Date:   Mar 6 20:04:41 2022
 
     second stage of cycling
 
-Date:   Sun Mar 6 20:00:35 2022 +0100
+Date:   Mar 6 20:00:35 2022
 
     first stage of cycling
 
-Date:   Sun Mar 6 19:31:09 2022 +0100
+Date:   Mar 6 19:31:09 2022
 
     added files

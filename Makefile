@@ -12,7 +12,7 @@ c_side: date.inc
 	dir=bin/side/pokey ;\
 	mkdir -p $$dir;\
 	mads movplay.s -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:$$dir/MOVPLAY.XEX
-	for covox in D280 D500 D600 D700 ; do  \
+	for covox in D280 D300 D500 D600 D700 ; do  \
 	dir=bin/side/covox_$$covox;  \
 	mkdir -p $$dir;\
 	mads movplay.s -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:$$dir/MOVPLAY.XEX ;\
@@ -22,7 +22,7 @@ c_incognito: date.inc
 	dir=bin/incognito/pokey ;\
 	mkdir -p $$dir;\
 	mads movplay.s -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:$$dir/MOVPLAY.XEX
-	for covox in D280 D500 D600 D700 ; do  \
+	for covox in D280 D300 D500 D600 D700 ; do  \
 	dir=bin/incognito/covox_$$covox;  \
 	mkdir -p $$dir;\
 	mads movplay.s -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:$$dir/MOVPLAY.XEX ;\

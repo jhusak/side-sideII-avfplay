@@ -116,6 +116,18 @@ zp_end:
 
 .proc	main
 		jsr reset_sound
+		.if (COVOX=$D300)
+		lda	#$ff
+		sta	$d300
+		lda	$D302
+		and	#$fb
+		sta	$D302
+		lda 	#$ff
+		sta	$D300
+		lda	$D302
+		ora	#$4
+		sta	$D302
+		.endif
 		jsr graphics0
 
 		mva #0	goodcnt
@@ -130,13 +142,27 @@ zp_end:
 		
 		;zero working variables
 
-		ldx		#zp_end-zp_start
+		ldx		#0
 		lda		#0
 clear_zp:
 		sta		zp_start,x
 		dex
-		bpl		clear_zp
+		bne		clear_zp
 
+		ldx		#$bf
+		ldy		#$33
+clear_zp1:
+		tya
+		sta		zpsndbuf,x
+		dex
+		beq cend
+		cpy #$ff
+		beq clear_zp1
+		iny
+		iny
+		
+		bne		clear_zp1
+cend
 		; store to force 3 cycle command in main loop
 		mva 	#$e0	$e0
 
@@ -731,6 +757,28 @@ ExitToDosNow
 ExitToDos
 		ldy #150
 		mva 		#$a0	audc1
+		.if (COVOX=$D300)
+exit
+		ldx	$d300
+		cpx	#$ff
+		beq	exit_cont
+		sta	wsync
+		sta	wsync
+		sta	wsync
+		sta	wsync
+		inc	$d300
+		bne	exit
+exit_cont
+		lda	#$ff
+		lda	$D302
+		and	#$fb
+		sta	$D302
+		lda 	#$00
+		sta	$D300
+		lda	$D302
+		ora	#$4
+		sta	$D302
+		.endif
 endwait
 		INC_RTC
 		WAITFRAME
