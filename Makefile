@@ -11,26 +11,26 @@ date.inc:
 c_side: date.inc
 	dir=bin/side/pokey ;\
 	mkdir -p $$dir;\
-	mads movplay.s -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:$$dir/MOVPLAY.XEX
+	mads movplay.s -bc -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:$$dir/MOVPLAY.XEX
 	for covox in D280 D300 D500 D600 D700 ; do  \
 	dir=bin/side/covox_$$covox;  \
 	mkdir -p $$dir;\
-	mads movplay.s -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:$$dir/MOVPLAY.XEX ;\
+	mads movplay.s -bc -d:CODE=1 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:$$dir/MOVPLAY.XEX ;\
 	done
 
 c_incognito: date.inc
 	dir=bin/incognito/pokey ;\
 	mkdir -p $$dir;\
-	mads movplay.s -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:$$dir/MOVPLAY.XEX
+	mads movplay.s -bc -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0 -o:$$dir/MOVPLAY.XEX
 	for covox in D280 D300 D500 D600 D700 ; do  \
 	dir=bin/incognito/covox_$$covox;  \
 	mkdir -p $$dir;\
-	mads movplay.s -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:$$dir/MOVPLAY.XEX ;\
+	mads movplay.s -bc -d:CODE=2 -d:RELEASE=$(RELEASE) -d:COVOX=0x$$covox -o:$$dir/MOVPLAY.XEX ;\
 	done
 
 # general rule, sometimes helpful, so here it is.
 %.xex: %.s
-	mads -l $< -o:$@
+	mads -l $< -bc -o:$@
 
 build: c
 	exomizer sfx 0x2800 -C -n -t 168 MOVPLAY -o MOVPLAY
