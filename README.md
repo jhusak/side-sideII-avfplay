@@ -20,7 +20,7 @@ but you must prepare CF card as before - write raw data to it.
 
 ## Varia and technical information
 
-The player originally written by Phaeron (Avery Lee), link: https://atariage.com/forums/topic/211689-60-fps-video-using-side-2/page/4/?tab=comments#comment-2796714 playing samples on POKEY chip with fairly new method PWM (Pulse Width Modulation) has been tweaked by me to play sound samples exactly in the same cycle of frame. PWM method gives about 106 allowable levels of sound, which is almost 7 bit (128 levels). However, the timing is crucial, because shifting one sample one cycle forward gives two levels distortion (so it is only merely 6 bits signal-noise distance) - theoretically this should be not noticable in PWM, but in fact it is.
+The player originally written by Phaeron (Avery Lee), link: https://atariage.com/forums/topic/211689-60-fps-video-using-side-2/page/4/?tab=comments#comment-2796714 playing samples on POKEY chip with fairly new method PWM (Pulse Width Modulation) has been tweaked by me to play sound samples exactly in the same cycle of horizontal line, ie every 114 cycles. PWM method gives about 106 allowable levels of sound, which is almost 7 bit (almost 128 levels). However, the timing is crucial, because shifting one sample one cycle forward gives two levels distortion (so it is only merely 6 bits signal-noise distance) - theoretically this should be not noticable in PWM, but in fact it is.
 
 The cycling was made on AVGCart version of player, then cycling was transferred to this code. 
 
@@ -28,7 +28,7 @@ The Altirra Atari Emulator by Avery Lee was used to check every sample plays at 
 
 The advantage of PWM method is that it is somehow prone to electrical hum produced by moving electrons and electric/magnetic fields inside the computer. When you switch to the COVOX version, the electrical noise is more audible due to more "analog" nature of COVOX. The second is that you get programatically free volume adjustment by setting the static volume of POKEY channel. The disadvantage important to our children and pets is that 15.6 khz whistle is audible for them and annoying.
 
-Well, TV ingeneers were too selfish - when THEY do not hear anything from TV set, it is good.
+Well, TV engineers were too selfish - when THEY do not hear anything from TV set, it is good.
 
 Happy testing (feel free to raise issues:)
 
